@@ -206,13 +206,6 @@ namespace QRSniper.Services
                     {
                         File.Copy(localIco, targetIco, true);
                     }
-
-                    string localIcon = Path.Combine(currentDir, "icon.png");
-                    string targetIcon = Path.Combine(targetDir, "icon.png");
-                    if (File.Exists(localIcon))
-                    {
-                        File.Copy(localIcon, targetIcon, true);
-                    }
                 }
 
                 CreateStartMenuShortcut(targetExe);

@@ -112,8 +112,9 @@ namespace QRSniper.UI
                 {
                     MessageBox.Show(
                         string.Format("QR Sniper v{0}\n\n" +
-                                      "Lightweight screen QR code scanner for Windows.\n" +
-                                      "Shortcut: {1}\n\n" +
+                                      "Author: ngkaa (github.com/ngkaa0)\n" +
+                                      "Built with Gemini in Google Antigravity\n\n" +
+                                      "Shortcut: {1}\n" +
                                       "RAM usage: ~3-5 MB\n" +
                                       "Idle CPU: 0.0%",
                                       AppConfig.CurrentVersion, _config.GetHotkeyDisplayString()),
@@ -286,32 +287,11 @@ namespace QRSniper.UI
                     return new Icon(icoPath);
                 }
 
-                // Загрузка из встроенных ресурсов exe
                 using (Stream stream = GetEmbeddedIconStream("app.ico"))
                 {
                     if (stream != null)
                     {
                         return new Icon(stream);
-                    }
-                }
-
-                string pngPath = Path.Combine(appDir, "icon.png");
-                if (File.Exists(pngPath))
-                {
-                    using (Bitmap src = new Bitmap(pngPath))
-                    {
-                        return Icon.FromHandle(src.GetHicon());
-                    }
-                }
-
-                using (Stream stream = GetEmbeddedIconStream("icon.png"))
-                {
-                    if (stream != null)
-                    {
-                        using (Bitmap src = new Bitmap(stream))
-                        {
-                            return Icon.FromHandle(src.GetHicon());
-                        }
                     }
                 }
             }
@@ -320,9 +300,6 @@ namespace QRSniper.UI
             return SystemIcons.Application;
         }
 
-        /// <summary>
-        /// Загружает точный пиксель-в-пиксель размер (16x16 или 24x24) строго под системный трей.
-        /// </summary>
         private static Icon LoadCrispTrayIcon()
         {
             try
@@ -340,42 +317,6 @@ namespace QRSniper.UI
                     if (stream != null)
                     {
                         return new Icon(stream, sz);
-                    }
-                }
-
-                string pngPath = Path.Combine(appDir, "icon.png");
-                if (File.Exists(pngPath))
-                {
-                    using (Bitmap src = new Bitmap(pngPath))
-                    using (Bitmap resized = new Bitmap(sz.Width, sz.Height))
-                    {
-                        using (Graphics g = Graphics.FromImage(resized))
-                        {
-                            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                            g.SmoothingMode = SmoothingMode.HighQuality;
-                            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                            g.DrawImage(src, 0, 0, sz.Width, sz.Height);
-                        }
-                        return Icon.FromHandle(resized.GetHicon());
-                    }
-                }
-
-                using (Stream stream = GetEmbeddedIconStream("icon.png"))
-                {
-                    if (stream != null)
-                    {
-                        using (Bitmap src = new Bitmap(stream))
-                        using (Bitmap resized = new Bitmap(sz.Width, sz.Height))
-                        {
-                            using (Graphics g = Graphics.FromImage(resized))
-                            {
-                                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                                g.SmoothingMode = SmoothingMode.HighQuality;
-                                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                                g.DrawImage(src, 0, 0, sz.Width, sz.Height);
-                            }
-                            return Icon.FromHandle(resized.GetHicon());
-                        }
                     }
                 }
             }

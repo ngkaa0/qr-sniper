@@ -13,10 +13,6 @@ if not exist "%CSC%" (
     exit /b 1
 )
 
-if exist "tools\make_ico.ps1" (
-    powershell -NoProfile -ExecutionPolicy Bypass -File "tools\make_ico.ps1"
-)
-
 echo Compiling lightweight standalone QRSniper.exe...
 
 set ICON_FLAG=
@@ -24,7 +20,6 @@ if exist "app.ico" set ICON_FLAG=/win32icon:app.ico
 
 set RES_FLAGS=/resource:lib\zxing.dll,QRSniper.Resources.zxing.dll
 if exist "app.ico" set RES_FLAGS=%RES_FLAGS% /resource:app.ico,QRSniper.Resources.app.ico
-if exist "icon.png" set RES_FLAGS=%RES_FLAGS% /resource:icon.png,QRSniper.Resources.icon.png
 
 "%CSC%" /target:winexe /optimize+ /nologo %ICON_FLAG% /r:System.dll,System.Core.dll,System.Drawing.dll,System.Windows.Forms.dll,lib\zxing.dll %RES_FLAGS% /win32manifest:app.manifest /out:QRSniper.exe Program.cs Models\*.cs Services\*.cs UI\*.cs
 
