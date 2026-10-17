@@ -1,0 +1,27 @@
+# User configuration (contains personal settings and hotkeys)
+config.json
+.write_test
+
+# Compiled binaries and local version archives
+QRSniper.exe
+versions/
+*.exe
+
+# Visual Studio / Rider / IDE files
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+# Build & Compilation artifacts
+bin/
+obj/
+*.pdb
+*.cache
+
+# Temporary & Scratch files
+scratch/
+scratch_*
+*.tmp
+*.log
