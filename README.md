@@ -1,6 +1,6 @@
 # QR Sniper
 
-> **Version:** `v0.9.6`  
+> **Version:** `v0.9.7`  
 > Ultra-lightweight, 100% standalone on-screen QR code scanner for clean Windows 10 & 11 installations.
 
 ---
@@ -35,7 +35,7 @@
   - Unified card design for both single and multiple QR scan results.
   - Custom hotkey selector with human-readable keys (`Page Down`, `Page Up`, `Enter`, `Delete`, `Tab`, arrow keys).
   - Configurable preferences: direct copy (skip window), capture sound, tray notifications, Windows startup.
-  - Direct "Test Scan" button from settings (auto-hides settings window during capture).
+  - Direct "Test Scan" button from settings.
 - **Smart Portable:**
   - Detects if running from Downloads or temporary folders and offers one-click migration to `%LOCALAPPDATA%\Programs\QRSniper` with a Start Menu shortcut.
   - Functions 100% standalone even when moved alone to Desktop or USB drives.

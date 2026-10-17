@@ -248,9 +248,9 @@ namespace QRSniper.UI
 
                 if (!string.IsNullOrEmpty(result.WifiPassword))
                 {
-                    Button btnCopyPass = CreateNativeButton("Copy Pass", 88);
+                    Button btnCopyPass = CreateNativeButton("Copy Pass", 86);
                     btnCopyPass.Height = 28;
-                    btnCopyPass.Font = new Font("Segoe UI", 8.5f, FontStyle.Bold);
+                    btnCopyPass.Font = new Font("Segoe UI", 8.5f);
                     btnCopyPass.Click += delegate
                     {
                         SafeClipboard.SetText(result.WifiPassword);
@@ -260,7 +260,7 @@ namespace QRSniper.UI
                     primaryButton = btnCopyPass;
                 }
 
-                Button btnCopyRaw = CreateNativeButton("Copy All", 78);
+                Button btnCopyRaw = CreateNativeButton("Copy", 72);
                 btnCopyRaw.Height = 28;
                 btnCopyRaw.Font = new Font("Segoe UI", 8.5f);
                 btnCopyRaw.Click += delegate

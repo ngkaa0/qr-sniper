@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo ========================================================
-echo   Building QR Sniper v0.9.6 (.NET Framework 4.8)
+echo   Building QR Sniper v0.9.7 (.NET Framework 4.8)
 echo ========================================================
 
 taskkill /f /im QRSniper.exe >nul 2>&1

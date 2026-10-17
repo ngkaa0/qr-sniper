@@ -6,7 +6,7 @@ namespace QRSniper.Models
 {
     public class AppConfig
     {
-        public const string CurrentVersion = "0.9.6";
+        public const string CurrentVersion = "0.9.7";
 
         public string Version { get; set; }
 

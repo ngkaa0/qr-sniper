@@ -17,8 +17,8 @@ using ZXing;
 [assembly: AssemblyDescription("Instant screen QR code scanner for Windows")]
 [assembly: AssemblyProduct("QR Sniper")]
 [assembly: AssemblyCompany("QR Sniper")]
-[assembly: AssemblyVersion("0.9.6.0")]
-[assembly: AssemblyFileVersion("0.9.6.0")]
+[assembly: AssemblyVersion("0.9.7.0")]
+[assembly: AssemblyFileVersion("0.9.7.0")]
 
 namespace QRSniper
 {
