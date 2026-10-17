@@ -20,25 +20,32 @@
 
 - **Instant Full-Screen Scan:**
   Press your global shortcut (default: `Ctrl + Shift + Q`) to capture and decode all QR codes on screen across multi-monitor setups and high-DPI displays.
+- **Smart QR Code Recognition:**
+  - **Wi-Fi QR Codes:** Automatically parses network name (SSID), security type, and password with a dedicated one-click **"Copy Pass"** button.
+  - **Web URLs:** Direct **"Open"** in default browser alongside copy.
+  - **Plain Text:** Monospaced card format with quick clipboard copy.
 - **Output Logic:**
   - **0 QR codes:** Quiet tray notification ("No QR Code Found").
   - **1 QR code:**
-    - *Default (checkbox unchecked):* Interactive unified result window opens with the decoded card (`Copy` and `Open URL` buttons). Content is not copied to clipboard automatically.
-    - *Optional (`Copy to clipboard (skip result window)` checked):* Window is skipped; content is copied directly to clipboard with a system tray notification.
-  - **2+ QR codes:** Unified interactive result window with direct copy and browser links for each detected item.
+    - *Default:* Interactive result dialog with direct copy (press `Enter` to copy, `Esc` to close).
+    - *Optional (`Copy to clipboard (skip result window)`):* Window is skipped; content is copied directly to clipboard with a system tray notification.
+  - **2+ QR codes:** Unified interactive result window with individual actions and a "Copy All" button.
 - **Clean Native Desktop UI:**
   - Standard Windows utility aesthetics (neutral, native styling; no website hero banners or artificial AI slop).
   - Unified card design for both single and multiple QR scan results.
   - Custom hotkey selector with human-readable keys (`Page Down`, `Page Up`, `Enter`, `Delete`, `Tab`, arrow keys).
   - Configurable preferences: direct copy (skip window), capture sound, tray notifications, Windows startup.
-  - Direct "Test Scan" button from settings.
+  - Direct "Test Scan" button from settings (auto-hides settings window during capture).
 - **Smart Portable:**
   - Detects if running from Downloads or temporary folders and offers one-click migration to `%LOCALAPPDATA%\Programs\QRSniper` with a Start Menu shortcut.
   - Functions 100% standalone even when moved alone to Desktop or USB drives.
-- **Version Archive:**
-  - Built-in versioning archives past builds in `versions/` (e.g. `versions/v0.9.6/`).
 
 ---
+
+## Download
+
+Standalone executable releases are available on **[GitHub Releases](https://github.com/ngkaa0/qr-sniper/releases)**.  
+No installer or dependencies required — simply download `QRSniper.exe` and run.
 
 ## Building from Source
 

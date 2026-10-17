@@ -101,19 +101,32 @@ namespace QRSniper.UI
             cardsTable.ColumnCount = 1;
             cardsTable.Padding = new Padding(0, 0, count > 2 ? 8 : 0, 0);
 
+            Button primaryDefaultButton = null;
+
             if (count == 0)
             {
                 QrScanResult emptyResult = new QrScanResult { Text = "" };
-                cardsTable.Controls.Add(CreateQrCard(1, emptyResult));
+                Button btn;
+                cardsTable.Controls.Add(CreateQrCard(1, emptyResult, out btn));
             }
             else
             {
                 for (int i = 0; i < count; i++)
                 {
                     QrScanResult item = _results[i];
-                    Panel card = CreateQrCard(i + 1, item);
+                    Button itemPrimaryButton;
+                    Panel card = CreateQrCard(i + 1, item, out itemPrimaryButton);
+                    if (i == 0)
+                    {
+                        primaryDefaultButton = itemPrimaryButton;
+                    }
                     cardsTable.Controls.Add(card);
                 }
+            }
+
+            if (count == 1 && primaryDefaultButton != null)
+            {
+                AcceptButton = primaryDefaultButton;
             }
 
             scrollContainer.Controls.Add(cardsTable);
@@ -163,8 +176,10 @@ namespace QRSniper.UI
             layout.Controls.Add(bottomPanel, 0, 2);
         }
 
-        private Panel CreateQrCard(int index, QrScanResult result)
+        private Panel CreateQrCard(int index, QrScanResult result, out Button primaryButton)
         {
+            primaryButton = null;
+
             Panel card = new Panel();
             card.Dock = DockStyle.Top;
             card.AutoSize = true;
@@ -196,8 +211,12 @@ namespace QRSniper.UI
             contentCol.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             contentCol.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
+            string typeName = "Text";
+            if (result.IsWifi) typeName = "Wi-Fi";
+            else if (result.IsUrl) typeName = "URL";
+
             Label lblIndex = new Label();
-            lblIndex.Text = string.Format("#{0} ({1})", index, result.IsUrl ? "URL" : "Text");
+            lblIndex.Text = string.Format("#{0} ({1})", index, typeName);
             lblIndex.Font = new Font("Segoe UI", 8.5f, FontStyle.Bold);
             lblIndex.ForeColor = SystemColors.ControlText;
             lblIndex.AutoSize = true;
@@ -207,13 +226,7 @@ namespace QRSniper.UI
             Label lblText = new Label();
             lblText.Dock = DockStyle.Top;
             lblText.AutoSize = true;
-            lblText.Font = new Font(result.IsUrl ? "Segoe UI" : "Consolas", 9f, FontStyle.Regular);
-            lblText.ForeColor = SystemColors.WindowText;
-            lblText.Text = string.IsNullOrEmpty(result.Text) ? "(Empty)" : result.Text;
             lblText.Margin = new Padding(0);
-            contentCol.Controls.Add(lblText, 0, 1);
-
-            rowLayout.Controls.Add(contentCol, 0, 0);
 
             // Right: Action buttons
             FlowLayoutPanel actionFlow = new FlowLayoutPanel();
@@ -223,28 +236,73 @@ namespace QRSniper.UI
             actionFlow.WrapContents = false;
             actionFlow.Margin = new Padding(8, 0, 0, 0);
 
-            Button btnCopyItem = CreateNativeButton("Copy", 72);
-            btnCopyItem.Height = 28;
-            btnCopyItem.Font = new Font("Segoe UI", 8.5f);
-            btnCopyItem.Click += delegate
+            if (result.IsWifi)
             {
-                SafeClipboard.SetText(result.Text);
-                ShowStatus(_results.Count == 1 ? "Copied to clipboard" : string.Format("Copied #{0}", index));
-            };
-            actionFlow.Controls.Add(btnCopyItem);
+                string ssid = string.IsNullOrEmpty(result.WifiSsid) ? "(Hidden)" : result.WifiSsid;
+                string sec = string.IsNullOrEmpty(result.WifiType) ? "None" : result.WifiType;
+                string pass = string.IsNullOrEmpty(result.WifiPassword) ? "(None)" : result.WifiPassword;
 
-            if (result.IsUrl)
-            {
-                Button btnOpenItem = CreateNativeButton("Open", 72);
-                btnOpenItem.Height = 28;
-                btnOpenItem.Font = new Font("Segoe UI", 8.5f);
-                btnOpenItem.Click += delegate
+                lblText.Font = new Font("Segoe UI", 9f, FontStyle.Regular);
+                lblText.ForeColor = SystemColors.WindowText;
+                lblText.Text = string.Format("SSID: {0}   |   Security: {1}\nPassword: {2}", ssid, sec, pass);
+
+                if (!string.IsNullOrEmpty(result.WifiPassword))
                 {
-                    OpenUrl(result.Text);
+                    Button btnCopyPass = CreateNativeButton("Copy Pass", 88);
+                    btnCopyPass.Height = 28;
+                    btnCopyPass.Font = new Font("Segoe UI", 8.5f, FontStyle.Bold);
+                    btnCopyPass.Click += delegate
+                    {
+                        SafeClipboard.SetText(result.WifiPassword);
+                        ShowStatus(_results.Count == 1 ? "Password copied" : string.Format("Password #{0} copied", index));
+                    };
+                    actionFlow.Controls.Add(btnCopyPass);
+                    primaryButton = btnCopyPass;
+                }
+
+                Button btnCopyRaw = CreateNativeButton("Copy All", 78);
+                btnCopyRaw.Height = 28;
+                btnCopyRaw.Font = new Font("Segoe UI", 8.5f);
+                btnCopyRaw.Click += delegate
+                {
+                    SafeClipboard.SetText(result.Text);
+                    ShowStatus(_results.Count == 1 ? "Wi-Fi config copied" : string.Format("Copied #{0}", index));
                 };
-                actionFlow.Controls.Add(btnOpenItem);
+                actionFlow.Controls.Add(btnCopyRaw);
+                if (primaryButton == null) primaryButton = btnCopyRaw;
+            }
+            else
+            {
+                lblText.Font = new Font(result.IsUrl ? "Segoe UI" : "Consolas", 9f, FontStyle.Regular);
+                lblText.ForeColor = SystemColors.WindowText;
+                lblText.Text = string.IsNullOrEmpty(result.Text) ? "(Empty)" : result.Text;
+
+                Button btnCopyItem = CreateNativeButton("Copy", 72);
+                btnCopyItem.Height = 28;
+                btnCopyItem.Font = new Font("Segoe UI", 8.5f);
+                btnCopyItem.Click += delegate
+                {
+                    SafeClipboard.SetText(result.Text);
+                    ShowStatus(_results.Count == 1 ? "Copied to clipboard" : string.Format("Copied #{0}", index));
+                };
+                actionFlow.Controls.Add(btnCopyItem);
+                primaryButton = btnCopyItem;
+
+                if (result.IsUrl)
+                {
+                    Button btnOpenItem = CreateNativeButton("Open", 72);
+                    btnOpenItem.Height = 28;
+                    btnOpenItem.Font = new Font("Segoe UI", 8.5f);
+                    btnOpenItem.Click += delegate
+                    {
+                        OpenUrl(result.Text);
+                    };
+                    actionFlow.Controls.Add(btnOpenItem);
+                }
             }
 
+            contentCol.Controls.Add(lblText, 0, 1);
+            rowLayout.Controls.Add(contentCol, 0, 0);
             rowLayout.Controls.Add(actionFlow, 1, 0);
             card.Controls.Add(rowLayout);
 

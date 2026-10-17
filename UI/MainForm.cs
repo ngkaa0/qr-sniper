@@ -201,7 +201,25 @@ namespace QRSniper.UI
             btnScanNow.Cursor = Cursors.Hand;
             btnScanNow.Click += delegate
             {
-                _triggerScanAction();
+                Hide();
+                Timer scanTimer = new Timer();
+                scanTimer.Interval = 250;
+                scanTimer.Tick += delegate
+                {
+                    scanTimer.Stop();
+                    scanTimer.Dispose();
+                    try
+                    {
+                        _triggerScanAction();
+                    }
+                    finally
+                    {
+                        Show();
+                        BringToFront();
+                        Activate();
+                    }
+                };
+                scanTimer.Start();
             };
             pnlBottom.Controls.Add(btnScanNow);
 
