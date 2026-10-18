@@ -24,9 +24,12 @@ if exist "app.ico" set RES_FLAGS=%RES_FLAGS% /resource:app.ico,QRSniper.Resource
 "%CSC%" /target:winexe /optimize+ /nologo %ICON_FLAG% /r:System.dll,System.Core.dll,System.Drawing.dll,System.Windows.Forms.dll,lib\zxing.dll %RES_FLAGS% /win32manifest:app.manifest /out:QRSniper.exe Program.cs Models\*.cs Services\*.cs UI\*.cs
 
 if %ERRORLEVEL% equ 0 (
+    if not exist "versions\v0.9.7" mkdir "versions\v0.9.7"
+    copy /y "QRSniper.exe" "versions\v0.9.7\QRSniper.exe" >nul
     echo.
     echo [SUCCESS] Standalone QRSniper.exe successfully created!
     echo Embedded native icon and ZXing library.
+    echo Version v0.9.7 archived to versions\v0.9.7
     echo Size: ~635 KB
 ) else (
     echo.
