@@ -328,7 +328,7 @@ namespace QRSniper.UI
             btn.Height = 28;
             btn.Font = new Font("Segoe UI", 9f);
             btn.Margin = new Padding(4, 0, 0, 0);
-            btn.Cursor = Cursors.Hand;
+            btn.Cursor = NativeCursors.Hand;
             return btn;
         }
 

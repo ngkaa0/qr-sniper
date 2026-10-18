@@ -92,7 +92,7 @@ namespace QRSniper.UI
             btnResetHotkey.Size = new Size(114, 28);
             btnResetHotkey.UseVisualStyleBackColor = true;
             btnResetHotkey.Font = new Font("Segoe UI", 8.5f);
-            btnResetHotkey.Cursor = Cursors.Hand;
+            btnResetHotkey.Cursor = NativeCursors.Hand;
             btnResetHotkey.Click += delegate
             {
                 _tempModCtrl = true;
@@ -147,7 +147,7 @@ namespace QRSniper.UI
             _btnMigrate.Size = new Size(260, 28);
             _btnMigrate.UseVisualStyleBackColor = true;
             _btnMigrate.Font = new Font("Segoe UI", 8.5f);
-            _btnMigrate.Cursor = Cursors.Hand;
+            _btnMigrate.Cursor = NativeCursors.Hand;
             _btnMigrate.Click += delegate
             {
                 if (MessageBox.Show(
@@ -166,7 +166,7 @@ namespace QRSniper.UI
             _btnOpenFolder.Location = new Point(284, 46);
             _btnOpenFolder.Size = new Size(140, 28);
             _btnOpenFolder.UseVisualStyleBackColor = true;
-            _btnOpenFolder.Cursor = Cursors.Hand;
+            _btnOpenFolder.Cursor = NativeCursors.Hand;
             _btnOpenFolder.Font = new Font("Segoe UI", 8.5f);
             _btnOpenFolder.Click += delegate
             {
@@ -198,7 +198,7 @@ namespace QRSniper.UI
             btnScanNow.Size = new Size(120, 32);
             btnScanNow.UseVisualStyleBackColor = true;
             btnScanNow.Font = new Font("Segoe UI", 9f);
-            btnScanNow.Cursor = Cursors.Hand;
+            btnScanNow.Cursor = NativeCursors.Hand;
             btnScanNow.Click += delegate
             {
                 _triggerScanAction();
@@ -211,7 +211,7 @@ namespace QRSniper.UI
             btnSave.Size = new Size(142, 32);
             btnSave.UseVisualStyleBackColor = true;
             btnSave.Font = new Font("Segoe UI", 9f, FontStyle.Bold);
-            btnSave.Cursor = Cursors.Hand;
+            btnSave.Cursor = NativeCursors.Hand;
             btnSave.Click += BtnSave_Click;
             pnlBottom.Controls.Add(btnSave);
 
@@ -228,7 +228,7 @@ namespace QRSniper.UI
             cb.AutoSize = true;
             cb.Font = new Font("Segoe UI", 9f, FontStyle.Regular);
             cb.ForeColor = SystemColors.ControlText;
-            cb.Cursor = Cursors.Hand;
+            cb.Cursor = NativeCursors.Hand;
             return cb;
         }
 
@@ -375,7 +375,7 @@ namespace QRSniper.UI
         public HotkeyControl()
         {
             SetStyle(ControlStyles.Selectable | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
-            Cursor = Cursors.Hand;
+            Cursor = NativeCursors.Hand;
             Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
             BackColor = SystemColors.Window;
         }
