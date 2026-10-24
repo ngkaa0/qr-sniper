@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -11,14 +12,14 @@ using System.Windows.Forms;
 using QRSniper.Models;
 using QRSniper.Services;
 using QRSniper.UI;
-using ZXing;
+using ZXingCpp;
 
 [assembly: AssemblyTitle("QR Sniper")]
 [assembly: AssemblyDescription("Instant screen QR code scanner for Windows")]
 [assembly: AssemblyProduct("QR Sniper")]
 [assembly: AssemblyCompany("QR Sniper")]
-[assembly: AssemblyVersion("0.9.7.0")]
-[assembly: AssemblyFileVersion("0.9.7.0")]
+[assembly: AssemblyVersion("0.9.8.0")]
+[assembly: AssemblyFileVersion("0.9.8.0")]
 
 namespace QRSniper
 {
@@ -36,6 +37,12 @@ namespace QRSniper
         [DllImport("shell32.dll", SetLastError = true)]
         private static extern int SetCurrentProcessExplicitAppUserModelID([MarshalAs(UnmanagedType.LPWStr)] string AppID);
 
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern bool SetDllDirectory(string lpPathName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr LoadLibrary(string lpLibFileName);
+
         [STAThread]
         private static void Main(string[] args)
         {
@@ -47,7 +54,7 @@ namespace QRSniper
             }
             catch { }
 
-            // Embedded ZXing assembly resolver
+            // 1. Embedded managed assembly resolver (ZXingCpp.dll)
             AppDomain.CurrentDomain.AssemblyResolve += delegate(object sender, ResolveEventArgs resolveArgs)
             {
                 try
@@ -82,12 +89,22 @@ namespace QRSniper
                 }
             };
 
+            // 2. Ensure native ZXing.dll is available and loaded
+            EnsureNativeDllLoaded();
+
             try { SetProcessDPIAware(); } catch { }
 
             // Self-test mode
             if (args != null && args.Length > 0 && args[0] == "--test")
             {
-                try { AttachConsole(ATTACH_PARENT_PROCESS); } catch { }
+                try
+                {
+                    AttachConsole(ATTACH_PARENT_PROCESS);
+                    StreamWriter sw = new StreamWriter(Console.OpenStandardOutput(), Console.OutputEncoding) { AutoFlush = true };
+                    Console.SetOut(sw);
+                    Console.SetError(sw);
+                }
+                catch { }
                 RunSelfTests();
                 return;
             }
@@ -160,22 +177,117 @@ namespace QRSniper
             }
         }
 
+        private static void EnsureNativeDllLoaded()
+        {
+            try
+            {
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string localNative = Path.Combine(baseDir, "ZXing.dll");
+                if (File.Exists(localNative))
+                {
+                    LoadLibrary(localNative);
+                    return;
+                }
+
+                string libNative = Path.Combine(baseDir, "lib", "ZXing.dll");
+                if (File.Exists(libNative))
+                {
+                    SetDllDirectory(Path.Combine(baseDir, "lib"));
+                    LoadLibrary(libNative);
+                    return;
+                }
+
+                // If running 100% standalone single .exe, extract embedded native DLL to AppData
+                string targetDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "QRSniper");
+                if (!Directory.Exists(targetDir))
+                {
+                    Directory.CreateDirectory(targetDir);
+                }
+
+                string targetFile = Path.Combine(targetDir, "ZXing.dll");
+                Assembly executing = Assembly.GetExecutingAssembly();
+                foreach (string res in executing.GetManifestResourceNames())
+                {
+                    if (res.EndsWith("ZXing.dll", StringComparison.OrdinalIgnoreCase))
+                    {
+                        using (Stream stream = executing.GetManifestResourceStream(res))
+                        {
+                            if (stream != null)
+                            {
+                                if (!File.Exists(targetFile) || new FileInfo(targetFile).Length != stream.Length)
+                                {
+                                    using (FileStream fs = new FileStream(targetFile, FileMode.Create, FileAccess.Write))
+                                    {
+                                        byte[] buf = new byte[65536];
+                                        int r;
+                                        while ((r = stream.Read(buf, 0, buf.Length)) > 0)
+                                        {
+                                            fs.Write(buf, 0, r);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                if (File.Exists(targetFile))
+                {
+                    SetDllDirectory(targetDir);
+                    LoadLibrary(targetFile);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        private static Bitmap CreateQrBitmap(string text)
+        {
+            var creator = new BarcodeCreator(BarcodeFormat.QRCode);
+            using (var barcode = creator.From(text))
+            using (var img = barcode.ToImage(new WriterOptions { Scale = 6 }))
+            {
+                Bitmap bmp = new Bitmap(img.Width, img.Height, PixelFormat.Format32bppArgb);
+                BitmapData bd = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+                try
+                {
+                    unsafe
+                    {
+                        byte* src = (byte*)img.Data;
+                        byte* dst = (byte*)bd.Scan0;
+                        for (int y = 0; y < img.Height; y++)
+                        {
+                            for (int x = 0; x < img.Width; x++)
+                            {
+                                byte val = src[y * img.Width + x];
+                                int di = y * bd.Stride + x * 4;
+                                dst[di] = val;
+                                dst[di + 1] = val;
+                                dst[di + 2] = val;
+                                dst[di + 3] = 255;
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    bmp.UnlockBits(bd);
+                }
+                return bmp;
+            }
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void RunSelfTests()
         {
             Console.WriteLine("=== QR SNIPER SELF-TEST (v" + AppConfig.CurrentVersion + ") ===");
 
             // 1. Single QR test
-            Console.Write("[Test 1/5] Single QR code recognition... ");
-            BarcodeWriter writer = new BarcodeWriter();
-            writer.Format = BarcodeFormat.QR_CODE;
-            writer.Options = new ZXing.Common.EncodingOptions();
-            writer.Options.Width = 200;
-            writer.Options.Height = 200;
-            writer.Options.Margin = 1;
-
+            Console.Write("[Test 1/5] Single QR code recognition (ZXing-C++)... ");
             string testPayload = "https://github.com/qrsniper-test";
-            using (Bitmap testBmp = writer.Write(testPayload))
+            using (Bitmap testBmp = CreateQrBitmap(testPayload))
             {
                 QrDecoderService decoder = new QrDecoderService();
                 List<QrScanResult> results = decoder.Decode(testBmp);
@@ -192,17 +304,17 @@ namespace QRSniper
             }
 
             // 2. Multi-QR test
-            Console.Write("[Test 2/5] Multi-QR code recognition... ");
-            using (Bitmap multiBmp = new Bitmap(500, 300))
+            Console.Write("[Test 2/5] Multi-QR code recognition (ZXing-C++)... ");
+            using (Bitmap multiBmp = new Bitmap(600, 320))
             {
                 using (Graphics g = Graphics.FromImage(multiBmp))
                 {
                     g.Clear(Color.White);
-                    using (Bitmap bmp1 = writer.Write("QR-CODE-NUMBER-ONE"))
-                    using (Bitmap bmp2 = writer.Write("https://another-url.com/second"))
+                    using (Bitmap bmp1 = CreateQrBitmap("QR-CODE-NUMBER-ONE"))
+                    using (Bitmap bmp2 = CreateQrBitmap("https://another-url.com/second"))
                     {
                         g.DrawImage(bmp1, 20, 20);
-                        g.DrawImage(bmp2, 260, 20);
+                        g.DrawImage(bmp2, 300, 20);
                     }
                 }
 

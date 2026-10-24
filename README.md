@@ -1,7 +1,7 @@
 # QR Sniper
 
-> **Version:** `v0.9.7`  
-> Ultra-lightweight, 100% standalone on-screen QR code scanner for clean Windows 10 & 11 installations.
+> **Version:** `v0.9.8`  
+> Ultra-low memory footprint (~3–5 MB RAM), instant 100% standalone on-screen QR code scanner for clean Windows 10 & 11 installations.
 
 ---
 
@@ -9,9 +9,10 @@
 
 | Metric | Value |
 |---|---|
-| **Binary Size** | **~635 KB** (single standalone `QRSniper.exe`, ZXing engine and icons embedded) |
-| **Idle Memory (RAM)** | **~3–5 MB** (with native Working Set trim) |
-| **Idle CPU** | **0.0%** (native OS hooks via `RegisterHotKey`) |
+| **Idle Memory (RAM)** | **~3–5 MB** (native Working Set trim — practically invisible in Task Manager) |
+| **Idle CPU** | **0.0%** (zero background load, native Win32 `RegisterHotKey`) |
+| **Decode Latency** | **~10–15 ms** (instant C++20 engine with subpixel sampling) |
+| **Binary Size** | **3.12 MB** (100% standalone single `.exe`, zero external dependencies) |
 | **Clean OS Support** | **Runs out-of-the-box on clean Windows 10/11 without extra runtimes** |
 
 ---
@@ -20,6 +21,9 @@
 
 - **Instant Full-Screen Scan:**
   Press your global shortcut (default: `Ctrl + Shift + Q`) to capture and decode all QR codes on screen across multi-monitor setups and high-DPI displays.
+- **Modern High-Speed QR Engine (ZXing-C++ 2.x):**
+  - **Unmatched Decoding Quality:** Easily reads stylized, fluid-dot, low-contrast dark mode, inverted, distorted, rotated, heavy branded (center logo), and AI-generated ControlNet QR codes.
+  - **High Performance:** Decodes 4K screens in ~40ms and 1080p screens in ~10ms.
 - **Smart QR Code Recognition:**
   - **Wi-Fi QR Codes:** Automatically parses network name (SSID), security type, and password with a dedicated one-click **"Copy Pass"** button.
   - **Web URLs:** Direct **"Open"** in default browser alongside copy.

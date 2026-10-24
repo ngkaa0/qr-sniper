@@ -1,24 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using QRSniper.Models;
-using ZXing;
-using ZXing.Common;
+using ZXingCpp;
 
 namespace QRSniper.Services
 {
     public class QrDecoderService
     {
-        private readonly BarcodeReader _reader;
+        private readonly ReaderOptions _options;
 
         public QrDecoderService()
         {
-            _reader = new BarcodeReader();
-            _reader.AutoRotate = true;
-            _reader.Options = new DecodingOptions();
-            _reader.Options.TryHarder = true;
-            _reader.Options.TryInverted = true;
-            _reader.Options.PossibleFormats = new List<BarcodeFormat> { BarcodeFormat.QR_CODE };
+            _options = new ReaderOptions
+            {
+                TryHarder = true,
+                TryRotate = true,
+                TryInvert = true,
+                TryDownscale = true,
+                Binarizer = Binarizer.LocalAverage,
+                Formats = BarcodeFormat.QRCode,
+                MaxNumberOfSymbols = 20
+            };
         }
 
         public List<QrScanResult> Decode(Bitmap bitmap)
@@ -28,53 +32,55 @@ namespace QRSniper.Services
 
             try
             {
-                // Множественное распознавание
-                Result[] multipleResults = _reader.DecodeMultiple(bitmap);
-                if (multipleResults != null && multipleResults.Length > 0)
-                {
-                    foreach (Result res in multipleResults)
-                    {
-                        if (res != null && !string.IsNullOrEmpty(res.Text))
-                        {
-                            bool alreadyExists = false;
-                            foreach (QrScanResult existing in results)
-                            {
-                                if (existing.Text == res.Text)
-                                {
-                                    alreadyExists = true;
-                                    break;
-                                }
-                            }
+                BitmapData data = bitmap.LockBits(
+                    new Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                    ImageLockMode.ReadOnly,
+                    PixelFormat.Format32bppArgb
+                );
 
-                            if (!alreadyExists)
+                try
+                {
+                    ImageView iv = new ImageView(data.Scan0, bitmap.Width, bitmap.Height, ZXingCpp.ImageFormat.BGRA, data.Stride, 4);
+                    Barcode[] barcodes = BarcodeReader.Read(iv, _options);
+
+                    if (barcodes != null && barcodes.Length > 0)
+                    {
+                        foreach (Barcode b in barcodes)
+                        {
+                            if (b != null && !string.IsNullOrEmpty(b.Text))
                             {
-                                QrScanResult item = new QrScanResult();
-                                item.Text = res.Text;
-                                item.Format = res.BarcodeFormat.ToString();
-                                item.Timestamp = DateTime.Now;
-                                results.Add(item);
+                                bool alreadyExists = false;
+                                foreach (QrScanResult existing in results)
+                                {
+                                    if (existing.Text == b.Text)
+                                    {
+                                        alreadyExists = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!alreadyExists)
+                                {
+                                    QrScanResult item = new QrScanResult
+                                    {
+                                        Text = b.Text,
+                                        Format = b.Format.ToString(),
+                                        Timestamp = DateTime.Now
+                                    };
+                                    results.Add(item);
+                                }
                             }
                         }
                     }
                 }
-
-                // Одиночный декод как резервный вариант
-                if (results.Count == 0)
+                finally
                 {
-                    Result singleResult = _reader.Decode(bitmap);
-                    if (singleResult != null && !string.IsNullOrEmpty(singleResult.Text))
-                    {
-                        QrScanResult item = new QrScanResult();
-                        item.Text = singleResult.Text;
-                        item.Format = singleResult.BarcodeFormat.ToString();
-                        item.Timestamp = DateTime.Now;
-                        results.Add(item);
-                    }
+                    bitmap.UnlockBits(data);
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("[QrDecoderService] Ошибка распознавания: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("[QrDecoderService] Scan error: " + ex.Message);
             }
 
             return results;
